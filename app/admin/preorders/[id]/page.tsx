@@ -34,7 +34,7 @@ export default async function AdminPreorderDetailPage({
   const { data: preorder } = await supabaseAdmin
     .from("preorders")
     .select(
-      "id, created_at, status, balance_charge_status, total_cents, deposit_cents, balance_cents, currency, cancellation_deadline, shipping_snapshot, stripe_customer_id, stripe_deposit_pi_id, stripe_balance_pi_id, stripe_payment_method_id, lookup_token, customer_id, configuration_id, balance_attempts, last_balance_attempt_at, balance_abandoned_at"
+      "id, created_at, status, balance_charge_status, total_cents, deposit_cents, balance_cents, currency, cancellation_deadline, shipping_snapshot, stripe_customer_id, stripe_deposit_pi_id, stripe_balance_pi_id, stripe_payment_method_id, lookup_token, customer_id, configuration_id, balance_attempts, last_balance_attempt_at, balance_abandoned_at, last_error, last_error_at, non_card_error_count"
     )
     .eq("id", id)
     .maybeSingle();
@@ -123,6 +123,16 @@ export default async function AdminPreorderDetailPage({
         {preorder.balance_abandoned_at && (
           <li style={{ color: "crimson" }}>
             Abandoned: {formatDateTime(preorder.balance_abandoned_at)} — needs a human
+          </li>
+        )}
+        {preorder.non_card_error_count > 0 && (
+          <li style={{ color: "crimson" }}>
+            Non-card ops errors: {preorder.non_card_error_count} · last{" "}
+            {preorder.last_error_at ? formatDateTime(preorder.last_error_at) : "—"} · {preorder.last_error}
+            <br />
+            <span style={{ fontWeight: "normal", color: "#555" }}>
+              Still being retried by the daily cron (self-healing) — investigate if this keeps climbing.
+            </span>
           </li>
         )}
       </ul>

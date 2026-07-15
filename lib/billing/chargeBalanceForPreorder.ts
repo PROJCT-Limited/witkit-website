@@ -25,6 +25,14 @@
 // Nothing here auto-cancels or auto-refunds — a human decides from admin.
 // SCA (requires_action) is NOT subject to this abandon logic; that path is
 // re-nudged on its own schedule by app/api/cron/nudge-sca instead.
+//
+// Non-card Stripe errors (rate limit, invalid request, idempotency conflict)
+// deliberately don't touch balance_attempts/balance_charge_status or email the
+// customer — self-healing is intentional, the daily cron just re-selects the
+// order next time. But that means a PERSISTENT non-card bug would otherwise
+// retry silently forever with zero signal. last_error/last_error_at/
+// non_card_error_count (migrations/005_ops_errors.sql) exist purely to make
+// that visible in admin without changing the retry behavior itself.
 // -----------------------------------------------------------------------------
 
 import Stripe from "stripe";
@@ -51,13 +59,14 @@ interface PreorderForCharge {
   stripe_customer_id: string | null;
   stripe_payment_method_id: string | null;
   balance_attempts: number;
+  non_card_error_count: number;
 }
 
 export async function chargeBalanceForPreorder(preorderId: string): Promise<ChargeBalanceOutcome> {
   const { data: preorder, error } = await supabaseAdmin
     .from("preorders")
     .select(
-      "id, status, balance_charge_status, balance_cents, currency, stripe_customer_id, stripe_payment_method_id, balance_attempts"
+      "id, status, balance_charge_status, balance_cents, currency, stripe_customer_id, stripe_payment_method_id, balance_attempts, non_card_error_count"
     )
     .eq("id", preorderId)
     .maybeSingle<PreorderForCharge>();
@@ -126,7 +135,20 @@ export async function chargeBalanceForPreorder(preorderId: string): Promise<Char
     // decline: don't count it as an attempt, don't touch balance_attempts or
     // balance_charge_status, don't tell the customer their card was declined.
     if (!(err instanceof Stripe.errors.StripeCardError)) {
-      console.error("chargeBalanceForPreorder: non-card Stripe error for", order.id, err.type, err.message);
+      // No PII: just the Stripe error shape and our own preorder id.
+      console.error(
+        "chargeBalanceForPreorder: non-card Stripe error",
+        JSON.stringify({ preorderId: order.id, type: err.type, code: err.code, message: err.message })
+      );
+      await supabaseAdmin
+        .from("preorders")
+        .update({
+          last_error: `${err.type}${err.code ? `:${err.code}` : ""} — ${err.message}`,
+          last_error_at: nowIso(),
+          non_card_error_count: order.non_card_error_count + 1,
+          updated_at: nowIso(),
+        })
+        .eq("id", order.id);
       return { outcome: "failed", paymentIntentId: null, message: err.message, abandoned: false };
     }
 

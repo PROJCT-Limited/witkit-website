@@ -18,6 +18,7 @@ interface Row {
   currency: string;
   cancellation_deadline: string;
   balance_abandoned_at: string | null;
+  non_card_error_count: number;
   customers: { email: string } | { email: string }[] | null;
   configurations: {
     params: Record<string, number>;
@@ -50,6 +51,7 @@ const BALANCE_FILTERS = [
   { key: "failed", label: "balance failed" },
   { key: "requires_action", label: "needs SCA" },
   { key: "abandoned", label: "abandoned" },
+  { key: "errors", label: "ops errors" },
 ];
 
 export default async function AdminPreorderListPage({
@@ -62,13 +64,15 @@ export default async function AdminPreorderListPage({
   let query = supabaseAdmin
     .from("preorders")
     .select(
-      "id, created_at, status, balance_charge_status, total_cents, deposit_cents, balance_cents, currency, cancellation_deadline, balance_abandoned_at, customers(email), configurations(params, products(name))"
+      "id, created_at, status, balance_charge_status, total_cents, deposit_cents, balance_cents, currency, cancellation_deadline, balance_abandoned_at, non_card_error_count, customers(email), configurations(params, products(name))"
     )
     .order("created_at", { ascending: false });
 
   if (status) query = query.eq("status", status);
   if (balance === "abandoned") {
     query = query.not("balance_abandoned_at", "is", null);
+  } else if (balance === "errors") {
+    query = query.gt("non_card_error_count", 0);
   } else if (balance) {
     query = query.eq("balance_charge_status", balance);
   }
@@ -130,6 +134,7 @@ export default async function AdminPreorderListPage({
             <th style={{ padding: 6 }}>Balance</th>
             <th style={{ padding: 6 }}>Status</th>
             <th style={{ padding: 6 }}>Balance charge</th>
+            <th style={{ padding: 6 }}>Ops errors</th>
             <th style={{ padding: 6 }}>Deadline</th>
           </tr>
         </thead>
@@ -156,6 +161,9 @@ export default async function AdminPreorderListPage({
                 <td style={{ padding: 6 }}>{row.status}</td>
                 <td style={{ padding: 6, color: row.balance_abandoned_at ? "crimson" : undefined }}>
                   {row.balance_abandoned_at ? "abandoned" : (row.balance_charge_status ?? "—")}
+                </td>
+                <td style={{ padding: 6, color: row.non_card_error_count > 0 ? "crimson" : undefined }}>
+                  {row.non_card_error_count > 0 ? row.non_card_error_count : "—"}
                 </td>
                 <td style={{ padding: 6 }}>
                   {new Date(row.cancellation_deadline).toLocaleDateString("en-US")}
