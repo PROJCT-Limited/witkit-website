@@ -3,17 +3,18 @@
   inset: 0;
   z-index: 50;
   background: var(--paper);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
+}
+
+.canvasHost {
+  width: 100%;
+  height: 100%;
 }
 
 .skip {
   position: absolute;
   top: 20px;
   right: 20px;
+  z-index: 1;
   min-width: 44px;
   min-height: 44px;
   padding: 0 16px;
@@ -25,48 +26,4 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   cursor: pointer;
-}
-
-.model {
-  width: 220px;
-  height: 220px;
-  opacity: 0;
-  transform: translateY(-40px);
-  transition: opacity 450ms ease, transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.modelSettled {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.basket {
-  opacity: 0;
-  transform: scale(0.9);
-  transition: opacity 350ms ease 150ms, transform 350ms ease 150ms;
-}
-
-.basketVisible {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.message {
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  opacity: 0;
-  transition: opacity 350ms ease 300ms;
-}
-
-.messageVisible {
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .model,
-  .basket,
-  .message {
-    transition: none;
-  }
 }

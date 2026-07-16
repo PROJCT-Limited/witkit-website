@@ -33,9 +33,14 @@ const PARAM_LABELS: Record<string, string> = {
 };
 
 // The stool's seat is square — one slider ("Seat width") drives both width
-// and depth. Every other object shows every schema param as its own slider.
+// and depth, so "depth" never gets its own slider. legWidth/topThickness
+// are hidden from the UI entirely (per Valeria's request) — they still get
+// set to a sensible default via defaultParams() and are still sent to the
+// API, just not user-adjustable.
+const HIDDEN_PARAMS = new Set(["legWidth", "topThickness"]);
+
 function visibleParamKeys(objectType: ObjectType, schema: ParamSchema): string[] {
-  const keys = Object.keys(schema.params);
+  const keys = Object.keys(schema.params).filter((k) => !HIDDEN_PARAMS.has(k));
   if (objectType !== "stool") return keys;
   return keys.filter((k) => k !== "depth");
 }
@@ -58,6 +63,16 @@ export function ConfiguratorClient({ initialType }: { initialType: ObjectType })
   const [schema, setSchema] = useState<ParamSchema | null>(null);
   const [apiParams, setApiParams] = useState<Record<string, number>>({});
   const [schemaError, setSchemaError] = useState<string | null>(null);
+  // Which object `schema`/`apiParams` actually belong to. Needed because
+  // React runs the schema-fetch effect and the model-sync effect (below)
+  // back-to-back off the SAME render: when objectType changes, model-sync
+  // still executes once against that render's stale schema/apiParams
+  // (the fetch effect's setState calls only take effect on the NEXT
+  // render) — for the stool that's a leftover non-square width/depth pair
+  // from whatever object was previously selected, and toPrototypeParams
+  // throws. Gating on loadedForType === objectType, updated only once fetch
+  // + params are set together, closes that window regardless of render timing.
+  const [loadedForType, setLoadedForType] = useState<ObjectType | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string[] | null>(null);
   const [cartTransition, setCartTransition] = useState<{
@@ -72,6 +87,7 @@ export function ConfiguratorClient({ initialType }: { initialType: ObjectType })
     let cancelled = false;
     setSchema(null);
     setSchemaError(null);
+    setApiParams({});
 
     fetch(`/api/products/${OBJECT_TYPE_SLUGS[objectType]}`)
       .then((res) => {
@@ -83,6 +99,10 @@ export function ConfiguratorClient({ initialType }: { initialType: ObjectType })
         const nextSchema = data.param_schema as ParamSchema;
         setSchema(nextSchema);
         setApiParams(defaultParams(nextSchema));
+        // objectType here is this effect's own closure — correct for
+        // whichever fetch this was, even if the user has since switched
+        // again (the `cancelled` guard above already handles that case).
+        setLoadedForType(objectType);
       })
       .catch((err) => {
         if (!cancelled) setSchemaError((err as Error).message);
@@ -94,15 +114,15 @@ export function ConfiguratorClient({ initialType }: { initialType: ObjectType })
   }, [objectType]);
 
   // Keep the live p5 render in sync without re-mounting the WEBGL canvas.
+  // loadedForType !== objectType is the important guard here — see its
+  // declaration for why the more obvious `!schema` check alone isn't enough.
   useEffect(() => {
-    if (!schema) return;
+    if (!schema || loadedForType !== objectType || Object.keys(apiParams).length === 0) return;
     modelStateRef.current = {
-      objectType: (["table", "stool", "shelf"] as const).includes(objectType as never)
-        ? (objectType as "table" | "stool" | "shelf")
-        : "table",
+      objectType,
       params: toPrototypeParams(objectType, apiParams),
     };
-  }, [objectType, apiParams, schema]);
+  }, [objectType, apiParams, schema, loadedForType]);
 
   const validation = useMemo(() => {
     if (!schema || Object.keys(apiParams).length === 0) return null;
@@ -152,9 +172,7 @@ export function ConfiguratorClient({ initialType }: { initialType: ObjectType })
 
       setCartTransition({
         url: reviewUrl,
-        objectType: (["table", "stool", "shelf"] as const).includes(objectType as never)
-          ? (objectType as "table" | "stool" | "shelf")
-          : "table",
+        objectType,
         params: toPrototypeParams(objectType, apiParams),
       });
     } catch {
