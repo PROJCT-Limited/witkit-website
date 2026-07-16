@@ -11,6 +11,8 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { Button } from "@/components/Button";
+import styles from "@/app/checkout/checkout.module.css";
 
 interface PreorderSummary {
   depositCents: number;
@@ -72,29 +74,40 @@ export function PaymentForm({ preorderId }: { preorderId: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       {summary && (
-        <p>
-          Deposit due now: <strong>{formatMoney(summary.depositCents, summary.currency)}</strong>
-          <br />
-          Balance due {new Date(summary.cancellationDeadline).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-          : <strong>{formatMoney(summary.balanceCents, summary.currency)}</strong>
-        </p>
+        <div className={styles.box}>
+          <ul className={styles.summaryList}>
+            <li>
+              <span>Deposit due now</span>
+              <span>{formatMoney(summary.depositCents, summary.currency)}</span>
+            </li>
+            <li>
+              <span>
+                Balance due{" "}
+                {new Date(summary.cancellationDeadline).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </span>
+              <span>{formatMoney(summary.balanceCents, summary.currency)}</span>
+            </li>
+          </ul>
+        </div>
       )}
 
       <PaymentElement />
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <p className={styles.errorList}>{error}</p>}
 
-      <button type="submit" disabled={!stripe || submitting}>
-        {submitting ? "Processing…" : "Pay deposit"}
-      </button>
+      <div className={styles.actions}>
+        <Button type="submit" variant="primary" disabled={!stripe} loading={submitting} loadingText="Processing…">
+          Pay deposit
+        </Button>
+      </div>
 
-      <p style={{ fontSize: 12, color: "#888" }}>Powered by Stripe.</p>
+      <p className={styles.trustMark}>Powered by Stripe.</p>
     </form>
   );
 }

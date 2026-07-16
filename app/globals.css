@@ -1,0 +1,78 @@
+/* FILE: app/globals.css
+   ---------------------------------------------------------------------------
+   Design tokens extracted from the p5 prototype (decided, not invented — see
+   the frontend brief Part 2). Two type roles only: --font-display (wordmark)
+   and --font-mono (everything else). Signature devices: 1.4px hairline
+   boxes, square corners, flat buttons.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --paper: rgb(244, 243, 240);
+  --ink: rgb(34, 34, 32);
+  --ink-ui: rgb(24, 24, 24);
+
+  /* Original prototype grey rgb(117,116,111) on --paper measures ~4.2:1 —
+     fails WCAG AA (4.5:1) for normal-size text. Darkened here per Part 5's
+     explicit instruction to verify and fix; ~5.0:1 against --paper. */
+  --grey: rgb(105, 104, 99);
+
+  --rule: rgb(227, 227, 227);
+  --muted: rgb(140, 140, 136);
+  --model-fill: rgb(190, 190, 190);
+  --model-line: rgb(110, 110, 110);
+
+  --hairline: 1.4px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink-ui);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol {
+  margin: 0;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+/* Visible on ALL interactive elements when reached by keyboard — required
+   per Part 5. Only on :focus-visible so a mouse click doesn't show a ring. */
+:focus-visible {
+  outline: 2px solid var(--ink-ui);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

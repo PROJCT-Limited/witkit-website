@@ -10,6 +10,9 @@ import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe/server";
 import { CompletePaymentClient } from "./CompletePaymentClient";
+import styles from "@/app/order/order.module.css";
+
+export const metadata = { title: "Complete payment — wit kit" };
 
 export default async function CompletePaymentPage({
   params,
@@ -28,8 +31,8 @@ export default async function CompletePaymentPage({
 
   if (preorder.balance_charge_status !== "requires_action" || !preorder.stripe_balance_pi_id) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-        <p>There's nothing pending for this order right now.</p>
+      <main className={styles.page}>
+        <p className={styles.note}>There's nothing pending for this order right now.</p>
         <p>
           <a href={`/order/${token}`}>Back to order status</a>
         </p>
@@ -41,15 +44,15 @@ export default async function CompletePaymentPage({
 
   if (!pi.client_secret) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-        <p>This payment can't be completed right now. Please contact us.</p>
+      <main className={styles.page}>
+        <p className={styles.note}>This payment can't be completed right now. Please contact us.</p>
       </main>
     );
   }
 
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-      <h1>Complete your payment</h1>
+    <main className={styles.page}>
+      <h1 className={styles.heading}>Complete your payment</h1>
       <CompletePaymentClient clientSecret={pi.client_secret} token={token} />
     </main>
   );

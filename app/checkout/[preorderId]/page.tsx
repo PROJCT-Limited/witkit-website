@@ -12,7 +12,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Elements } from "@stripe/react-stripe-js";
 import { getStripe } from "@/lib/stripe/client";
+import { stripeAppearance } from "@/app/checkout/stripeAppearance";
 import { PaymentForm } from "./PaymentForm";
+import styles from "@/app/checkout/checkout.module.css";
 
 export default function CheckoutPaymentPage() {
   const { preorderId } = useParams<{ preorderId: string }>();
@@ -30,8 +32,8 @@ export default function CheckoutPaymentPage() {
 
   if (missing) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-        <p>
+      <main className={styles.page}>
+        <p className={styles.lead}>
           Your checkout session expired, or this page was opened directly.{" "}
           <a href="/checkout">Start checkout again</a>.
         </p>
@@ -42,9 +44,9 @@ export default function CheckoutPaymentPage() {
   if (!clientSecret) return null;
 
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-      <h1>Payment</h1>
-      <Elements stripe={getStripe()} options={{ clientSecret }}>
+    <main className={styles.page}>
+      <h1 className={styles.heading}>Payment</h1>
+      <Elements stripe={getStripe()} options={{ clientSecret, appearance: stripeAppearance }}>
         <PaymentForm preorderId={preorderId} />
       </Elements>
     </main>

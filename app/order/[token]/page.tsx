@@ -10,6 +10,7 @@
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { CancelButton } from "./CancelButton";
+import styles from "@/app/order/order.module.css";
 
 function formatMoney(cents: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
@@ -43,6 +44,8 @@ const statusLabels: Record<string, string> = {
   in_production: "In production",
   fulfilled: "Fulfilled — shipped",
 };
+
+export const metadata = { title: "Order status — wit kit" };
 
 export default async function OrderStatusPage({
   params,
@@ -84,43 +87,54 @@ export default async function OrderStatusPage({
   const needsAction = preorder.balance_charge_status === "requires_action";
 
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-      <h1>Order {orderRef}</h1>
-      <p>
+    <main className={styles.page}>
+      <h1 className={styles.heading}>Order {orderRef}</h1>
+      <p className={styles.status}>
         Status: <strong>{statusLabel}</strong>
       </p>
 
       {product?.name && (
-        <>
-          <h2 style={{ fontSize: 16 }}>{product.name}</h2>
+        <div className={styles.box}>
+          <span className={styles.sectionTitle}>{product.name}</span>
           {configuration?.params && (
-            <ul>
-              {Object.entries(configuration.params as Record<string, number>).map(
-                ([key, value]) => (
-                  <li key={key}>
-                    {paramLabels[key] ?? key}: {value}
-                  </li>
-                )
-              )}
+            <ul className={styles.list}>
+              {Object.entries(configuration.params as Record<string, number>).map(([key, value]) => (
+                <li key={key}>
+                  <span>{paramLabels[key] ?? key}</span>
+                  <span>{value} cm</span>
+                </li>
+              ))}
             </ul>
           )}
           {product.lead_time_weeks ? (
-            <p>
+            <p className={styles.note}>
               Estimated lead time: {product.lead_time_weeks} week
               {product.lead_time_weeks === 1 ? "" : "s"} from production start.
             </p>
           ) : null}
-        </>
+        </div>
       )}
 
-      <ul>
-        <li>Total: {formatMoney(preorder.total_cents, preorder.currency)}</li>
-        <li>Deposit paid: {formatMoney(preorder.deposit_cents, preorder.currency)}</li>
-        <li>Balance due: {formatMoney(preorder.balance_cents, preorder.currency)}</li>
-      </ul>
+      <div className={styles.box}>
+        <span className={styles.sectionTitle}>Amounts</span>
+        <ul className={styles.list}>
+          <li>
+            <span>Total</span>
+            <span>{formatMoney(preorder.total_cents, preorder.currency)}</span>
+          </li>
+          <li>
+            <span>Deposit paid</span>
+            <span>{formatMoney(preorder.deposit_cents, preorder.currency)}</span>
+          </li>
+          <li>
+            <span>Balance due</span>
+            <span>{formatMoney(preorder.balance_cents, preorder.currency)}</span>
+          </li>
+        </ul>
+      </div>
 
       {balanceNotYetCharged && (
-        <p>
+        <p className={styles.note}>
           We'll charge the remaining {formatMoney(preorder.balance_cents, preorder.currency)} on{" "}
           {formatDate(preorder.cancellation_deadline)}. To cancel for a full refund, do so before
           then.
@@ -128,7 +142,7 @@ export default async function OrderStatusPage({
       )}
 
       {needsAction && (
-        <p>
+        <p className={styles.actionNote}>
           <a href={`/order/${token}/complete-payment`}>
             Your bank needs you to verify the balance payment — complete it here
           </a>

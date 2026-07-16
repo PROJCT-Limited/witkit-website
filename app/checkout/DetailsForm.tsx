@@ -8,6 +8,8 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/Button";
+import styles from "./checkout.module.css";
 
 export function DetailsForm({ configurationId }: { configurationId: string }) {
   const router = useRouter();
@@ -73,90 +75,101 @@ export function DetailsForm({ configurationId }: { configurationId: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       {errors.length > 0 && (
-        <ul style={{ color: "crimson" }}>
+        <ul className={styles.errorList}>
           {errors.map((err) => (
             <li key={err}>{err}</li>
           ))}
         </ul>
       )}
 
-      <label>
-        Email
-        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-      </label>
-      <label>
-        Full name
-        <input type="text" required value={name} onChange={(e) => setName(e.target.value)} />
-      </label>
-      <label>
-        Phone (optional)
-        <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
-      </label>
-
-      <fieldset>
-        <legend>Shipping address</legend>
-        <label>
-          Address line 1
-          <input type="text" required value={line1} onChange={(e) => setLine1(e.target.value)} />
+      <fieldset className={styles.fieldset}>
+        <legend className={styles.legend}>Your details</legend>
+        <label className={styles.field}>
+          Email
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
-        <label>
-          Address line 2 (optional)
-          <input type="text" value={line2} onChange={(e) => setLine2(e.target.value)} />
+        <label className={styles.field}>
+          Full name
+          <input type="text" required value={name} onChange={(e) => setName(e.target.value)} />
         </label>
-        <label>
-          City
-          <input type="text" required value={city} onChange={(e) => setCity(e.target.value)} />
-        </label>
-        <label>
-          State / region (optional)
-          <input type="text" value={region} onChange={(e) => setRegion(e.target.value)} />
-        </label>
-        <label>
-          Postal code
-          <input
-            type="text"
-            required
-            value={postalCode}
-            onChange={(e) => setPostalCode(e.target.value)}
-          />
-        </label>
-        <label>
-          Country
-          <input
-            type="text"
-            required
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            placeholder="US"
-          />
+        <label className={styles.field}>
+          Phone (optional)
+          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </label>
       </fieldset>
 
-      <label>
+      <fieldset className={styles.fieldset}>
+        <legend className={styles.legend}>Shipping address</legend>
+        <label className={styles.field}>
+          Address line 1
+          <input type="text" required value={line1} onChange={(e) => setLine1(e.target.value)} />
+        </label>
+        <label className={styles.field}>
+          Address line 2 (optional)
+          <input type="text" value={line2} onChange={(e) => setLine2(e.target.value)} />
+        </label>
+        <div className={styles.fieldRow}>
+          <label className={styles.field}>
+            City
+            <input type="text" required value={city} onChange={(e) => setCity(e.target.value)} />
+          </label>
+          <label className={styles.field}>
+            State / region
+            <input type="text" value={region} onChange={(e) => setRegion(e.target.value)} />
+          </label>
+        </div>
+        <div className={styles.fieldRow}>
+          <label className={styles.field}>
+            Postal code
+            <input
+              type="text"
+              required
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value)}
+            />
+          </label>
+          <label className={styles.field}>
+            Country
+            <input
+              type="text"
+              required
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder="US"
+            />
+          </label>
+        </div>
+      </fieldset>
+
+      <label className={styles.checkboxRow}>
         <input
           type="checkbox"
           required
           checked={termsAgreed}
           onChange={(e) => setTermsAgreed(e.target.checked)}
         />
-        I agree to pay 20% now and the remaining 80% automatically when production starts,
-        unless I cancel before then for a full refund of my deposit.
+        <span>
+          I agree to pay 20% now and the remaining 80% automatically when production starts,
+          unless I cancel before then for a full refund of my deposit.
+        </span>
       </label>
 
-      <label>
+      <label className={styles.checkboxRow}>
         <input
           type="checkbox"
           checked={marketingConsent}
           onChange={(e) => setMarketingConsent(e.target.checked)}
         />
-        Join wit kit — send me occasional updates on what we're building.
+        <span>Join wit kit — send me occasional updates on what we're building.</span>
       </label>
 
-      <button type="submit" disabled={submitting}>
-        {submitting ? "Please wait…" : "Continue to payment"}
-      </button>
+      <div className={styles.actions}>
+        <Button type="submit" variant="primary" loading={submitting} loadingText="Please wait…">
+          Continue to payment
+        </Button>
+      </div>
     </form>
   );
 }

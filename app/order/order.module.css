@@ -1,0 +1,66 @@
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.heading {
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status {
+  font-size: 14px;
+}
+
+.box {
+  border: var(--hairline) solid var(--ink-ui);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--grey);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.note {
+  font-size: 13px;
+  color: var(--grey);
+}
+
+.actionNote {
+  border: var(--hairline) solid var(--ink-ui);
+  padding: 12px 14px;
+  font-size: 13px;
+}
+
+.errorText {
+  color: #b3261e;
+  font-size: 13px;
+}

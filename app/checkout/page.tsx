@@ -8,10 +8,13 @@
 
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { DetailsForm } from "./DetailsForm";
+import styles from "./checkout.module.css";
 
 function formatUSD(cents: number): string {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
 }
+
+export const metadata = { title: "Checkout — wit kit" };
 
 export default async function CheckoutPage({
   searchParams,
@@ -22,8 +25,8 @@ export default async function CheckoutPage({
 
   if (!configurationId) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-        <p>Missing configuration. Go back and finish designing your piece first.</p>
+      <main className={styles.page}>
+        <p className={styles.lead}>Missing configuration. Go back and finish designing your piece first.</p>
       </main>
     );
   }
@@ -36,31 +39,41 @@ export default async function CheckoutPage({
 
   if (!configuration) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-        <p>We couldn't find that configuration. Go back and finish designing your piece first.</p>
+      <main className={styles.page}>
+        <p className={styles.lead}>
+          We couldn't find that configuration. Go back and finish designing your piece first.
+        </p>
       </main>
     );
   }
 
-  const product = Array.isArray(configuration.products)
-    ? configuration.products[0]
-    : configuration.products;
+  const product = Array.isArray(configuration.products) ? configuration.products[0] : configuration.products;
 
   const totalCents = configuration.price_cents as number;
   const depositCents = Math.round(totalCents * 0.2);
   const balanceCents = totalCents - depositCents;
 
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-      <h1>Checkout</h1>
-      <p>
-        {product?.name ?? "Your piece"} — {formatUSD(totalCents)} total, made to order.
-      </p>
-      <p>
-        Pay <strong>{formatUSD(depositCents)}</strong> now as a deposit. The remaining{" "}
-        <strong>{formatUSD(balanceCents)}</strong> is charged automatically when production
-        starts — see the exact terms in the form below.
-      </p>
+    <main className={styles.page}>
+      <h1 className={styles.heading}>Checkout</h1>
+
+      <div className={styles.box}>
+        <ul className={styles.summaryList}>
+          <li>
+            <span>{product?.name ?? "Your piece"}</span>
+            <span>{formatUSD(totalCents)}</span>
+          </li>
+          <li>
+            <span>Deposit due now</span>
+            <span>{formatUSD(depositCents)}</span>
+          </li>
+          <li>
+            <span>Balance on production start</span>
+            <span>{formatUSD(balanceCents)}</span>
+          </li>
+        </ul>
+      </div>
+
       <DetailsForm configurationId={configuration.id} />
     </main>
   );

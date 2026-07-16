@@ -9,6 +9,8 @@
 
 import { useState, type FormEvent } from "react";
 import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { Button } from "@/components/Button";
+import styles from "@/app/checkout/checkout.module.css";
 
 export function CompletePaymentForm({ token }: { token: string }) {
   const stripe = useStripe();
@@ -44,13 +46,15 @@ export function CompletePaymentForm({ token }: { token: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       <PaymentElement />
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
-      <button type="submit" disabled={!stripe || submitting}>
-        {submitting ? "Processing…" : "Complete payment"}
-      </button>
-      <p style={{ fontSize: 12, color: "#888" }}>Powered by Stripe.</p>
+      {error && <p className={styles.errorList}>{error}</p>}
+      <div className={styles.actions}>
+        <Button type="submit" variant="primary" disabled={!stripe} loading={submitting} loadingText="Processing…">
+          Complete payment
+        </Button>
+      </div>
+      <p className={styles.trustMark}>Powered by Stripe.</p>
     </form>
   );
 }

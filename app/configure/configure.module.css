@@ -1,0 +1,154 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--paper);
+}
+
+.modelArea {
+  position: relative;
+  height: 45dvh;
+  min-height: 280px;
+  border-bottom: var(--hairline) solid var(--ink-ui);
+  background: var(--paper);
+}
+
+.modelHint {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.controls {
+  flex: 1;
+  padding: 20px 16px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.objectSwitcher {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.objectCard {
+  flex: 0 0 auto;
+  min-width: 96px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: var(--hairline) solid var(--ink-ui);
+  background: var(--paper);
+  color: var(--ink-ui);
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.objectCardActive {
+  background: var(--ink-ui);
+  color: var(--paper);
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border: var(--hairline) solid var(--ink-ui);
+  padding: 14px 16px;
+}
+
+.priceLabel {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+.price {
+  font-size: 22px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--grey);
+}
+
+.sliderRow {
+  display: grid;
+  grid-template-columns: 1fr 2.4fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+
+.sliderLabel {
+  font-size: 13px;
+}
+
+.slider {
+  width: 100%;
+  height: 44px;
+  accent-color: var(--ink-ui);
+}
+
+.sliderValue {
+  font-size: 12px;
+  color: var(--grey);
+  min-width: 52px;
+  text-align: right;
+}
+
+.warning {
+  border: var(--hairline) solid var(--ink-ui);
+  padding: 10px 12px;
+  font-size: 13px;
+  background: var(--paper);
+}
+
+.error {
+  color: #b3261e;
+  font-size: 13px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.doneRow {
+  position: sticky;
+  bottom: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (min-width: 860px) {
+  .page {
+    flex-direction: row;
+  }
+
+  .modelArea {
+    flex: 1;
+    height: 100dvh;
+    border-bottom: none;
+    border-right: var(--hairline) solid var(--ink-ui);
+  }
+
+  .controls {
+    width: 380px;
+    height: 100dvh;
+    overflow-y: auto;
+    padding: 28px 24px 32px;
+  }
+
+  .doneRow {
+    position: static;
+  }
+}

@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import styles from "@/app/checkout/checkout.module.css";
 
 interface PreorderSummary {
   status: string;
@@ -48,9 +49,9 @@ export default function ThankYouPage() {
   const confirmed = summary != null && summary.status !== "pending";
 
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 32 }}>
-      <h1>{confirmed ? "Deposit confirmed" : "Confirming your payment…"}</h1>
-      <p>
+    <main className={styles.page}>
+      <h1 className={styles.heading}>{confirmed ? "Deposit confirmed" : "Confirming your payment…"}</h1>
+      <p className={styles.lead}>
         {confirmed
           ? "Thanks — your deposit is confirmed and a receipt is on its way to your inbox."
           : "This only takes a moment. Don't close this tab."}

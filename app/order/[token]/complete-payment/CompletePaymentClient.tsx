@@ -6,6 +6,7 @@
 
 import { Elements } from "@stripe/react-stripe-js";
 import { getStripe } from "@/lib/stripe/client";
+import { stripeAppearance } from "@/app/checkout/stripeAppearance";
 import { CompletePaymentForm } from "./CompletePaymentForm";
 
 export function CompletePaymentClient({
@@ -16,7 +17,7 @@ export function CompletePaymentClient({
   token: string;
 }) {
   return (
-    <Elements stripe={getStripe()} options={{ clientSecret }}>
+    <Elements stripe={getStripe()} options={{ clientSecret, appearance: stripeAppearance }}>
       <CompletePaymentForm token={token} />
     </Elements>
   );

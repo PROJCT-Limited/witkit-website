@@ -8,6 +8,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/Button";
+import styles from "@/app/order/order.module.css";
 
 export function CancelButton({ token }: { token: string }) {
   const router = useRouter();
@@ -33,10 +35,10 @@ export function CancelButton({ token }: { token: string }) {
 
   return (
     <div>
-      <button onClick={handleCancel} disabled={busy}>
-        {busy ? "Cancelling…" : "Cancel order"}
-      </button>
-      {error && <p style={{ color: "crimson", fontSize: 13 }}>{error}</p>}
+      <Button onClick={handleCancel} loading={busy} loadingText="Cancelling…">
+        Cancel order
+      </Button>
+      {error && <p className={styles.errorText}>{error}</p>}
     </div>
   );
 }
