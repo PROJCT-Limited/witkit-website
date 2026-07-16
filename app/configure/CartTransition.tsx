@@ -113,10 +113,12 @@ export function CartTransition({
           const originX = -p.width / 2;
           const originY = -p.height / 2;
 
-          // Flying model
+          // Flying model — scaled down (and the basket scaled up) relative
+          // to the first pass so the object actually fits inside/on the
+          // basket instead of dwarfing it.
           p.push();
-          p.translate(originX + cx, originY + baseY - 90 + drop, 0);
-          p.scale(2.6);
+          p.translate(originX + cx, originY + baseY - 70 + drop, 0);
+          p.scale(1.5);
           p.rotateX(-0.5);
           p.rotateY(0.7);
           p.ambientLight(170);
@@ -128,7 +130,7 @@ export function CartTransition({
           p.pop();
 
           // Basket
-          drawBasket(originX + cx, originY + baseY, 1.6);
+          drawBasket(originX + cx, originY + baseY, 2.2);
 
           if (t > 0.45) {
             p.push();
