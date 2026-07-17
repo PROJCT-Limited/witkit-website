@@ -372,8 +372,43 @@ export function HeroSection({ labels = LABELS }: { labels?: FragmentLabel[] }) {
           return -1;
         }
 
-        p.mousePressed = () => {
+        // p5 v2 dropped the separate touchStarted/touchMoved/touchEnded
+        // lifecycle — touch input is unified into Pointer Events, so it
+        // drives mousePressed/mouseDragged/mouseReleased too (with
+        // event.pointerType === "touch"). Wheel-driven reveal has no touch
+        // equivalent, so a vertical swipe has to drive it here instead. Once
+        // fragments become interactive late in the sequence, a touch there
+        // opens/closes its label instead of continuing to drive the reveal.
+        let touchDriving = false;
+        let touchLastY = 0;
+
+        p.mousePressed = (event?: MouseEvent) => {
+          const isTouch = (event as PointerEvent | undefined)?.pointerType === "touch";
           const fragA = p.constrain((prog - 0.55) / 0.22, 0, 1);
+
+          if (isTouch) {
+            if (fragA >= 0.5) {
+              const i = fragUnder(p.mouseX, p.mouseY);
+              if (i >= 0) {
+                const f = frags[i];
+                setOpenLabel((prev) =>
+                  prev && prev.label === labelsRef.current[i % labelsRef.current.length]
+                    ? null
+                    : { label: labelsRef.current[i % labelsRef.current.length], x: f.x, y: f.y }
+                );
+              } else {
+                setOpenLabel(null);
+              }
+              return false;
+            }
+            if (!reducedMotion && target < 1) {
+              touchDriving = true;
+              touchLastY = p.mouseY;
+              return false;
+            }
+            return; // sequence already done — let the page scroll normally
+          }
+
           if (fragA < 0.5) return;
           const i = fragUnder(p.mouseX, p.mouseY);
           if (i >= 0) {
@@ -382,7 +417,19 @@ export function HeroSection({ labels = LABELS }: { labels?: FragmentLabel[] }) {
             dragOff.y = p.mouseY - frags[i].y;
           }
         };
-        p.mouseDragged = () => {
+        p.mouseDragged = (event?: MouseEvent) => {
+          if ((event as PointerEvent | undefined)?.pointerType === "touch") {
+            if (!touchDriving) return;
+            if (target >= 1) {
+              touchDriving = false;
+              return;
+            }
+            const dy = touchLastY - p.mouseY; // swiping up advances the reveal, like scrolling down
+            target = p.constrain(target + dy * 0.003, 0, 1);
+            touchLastY = p.mouseY;
+            return false;
+          }
+
           if (dragging < 0) return false;
           const f = frags[dragging];
           f.x = p.mouseX - dragOff.x;
@@ -392,62 +439,12 @@ export function HeroSection({ labels = LABELS }: { labels?: FragmentLabel[] }) {
           f.vy = p.mouseY - p.pmouseY;
           return false;
         };
-        p.mouseReleased = () => {
-          dragging = -1;
-        };
-
-        // Touch has no wheel — a vertical swipe has to drive the reveal
-        // instead, the same way it does via mouseWheel on desktop. Once
-        // fragments become interactive late in the sequence, a touch there
-        // opens/closes its label instead of continuing to drive the reveal.
-        let touchDriving = false;
-        let touchLastY = 0;
-
-        const pTouch = p as unknown as {
-          touchStarted: () => boolean;
-          touchMoved: () => boolean;
-          touchEnded: () => boolean;
-        };
-
-        pTouch.touchStarted = () => {
-          const fragA = p.constrain((prog - 0.55) / 0.22, 0, 1);
-          if (fragA >= 0.5) {
-            const i = fragUnder(p.mouseX, p.mouseY);
-            if (i >= 0) {
-              const f = frags[i];
-              setOpenLabel((prev) =>
-                prev && prev.label === labelsRef.current[i % labelsRef.current.length]
-                  ? null
-                  : { label: labelsRef.current[i % labelsRef.current.length], x: f.x, y: f.y }
-              );
-            } else {
-              setOpenLabel(null);
-            }
-            return false;
-          }
-          if (!reducedMotion && target < 1) {
-            touchDriving = true;
-            touchLastY = p.mouseY;
-            return false;
-          }
-          return true; // sequence already done — let the page scroll normally
-        };
-
-        pTouch.touchMoved = () => {
-          if (!touchDriving) return true;
-          if (target >= 1) {
+        p.mouseReleased = (event?: MouseEvent) => {
+          if ((event as PointerEvent | undefined)?.pointerType === "touch") {
             touchDriving = false;
-            return true;
+            return;
           }
-          const dy = touchLastY - p.mouseY; // swiping up advances the reveal, like scrolling down
-          target = p.constrain(target + dy * 0.003, 0, 1);
-          touchLastY = p.mouseY;
-          return false;
-        };
-
-        pTouch.touchEnded = () => {
-          touchDriving = false;
-          return true;
+          dragging = -1;
         };
 
         // Drive the reveal while incomplete; once finished, return nothing
