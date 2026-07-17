@@ -425,7 +425,11 @@ export function HeroSection({ labels = LABELS }: { labels?: FragmentLabel[] }) {
               return;
             }
             const dy = touchLastY - p.mouseY; // swiping up advances the reveal, like scrolling down
-            target = p.constrain(target + dy * 0.003, 0, 1);
+            // Kept close to the desktop wheel multiplier (0.0008) — both dy
+            // and deltaY are in comparable device-pixel units, so a much
+            // higher touch multiplier here made a single swipe blow straight
+            // through the whole reveal instead of pacing it like scrolling does.
+            target = p.constrain(target + dy * 0.001, 0, 1);
             touchLastY = p.mouseY;
             return false;
           }

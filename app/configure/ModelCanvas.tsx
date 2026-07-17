@@ -68,60 +68,49 @@ export function ModelCanvas({ stateRef }: { stateRef: React.RefObject<ModelCanva
           p.pop();
         };
 
-        p.mousePressed = () => {
-          if (p.mouseX >= 0 && p.mouseX <= p.width && p.mouseY >= 0 && p.mouseY <= p.height) {
-            dragging = true;
-          }
-        };
-        p.mouseDragged = () => {
-          if (!dragging) return;
-          rotY += (p.mouseX - p.pmouseX) * 0.01;
-          rotX += (p.mouseY - p.pmouseY) * 0.01;
-        };
-        p.mouseReleased = () => {
-          dragging = false;
-        };
-        p.mouseWheel = (e: WheelEvent) => {
-          zoom = p.constrain(zoom - e.deltaY * 0.0008, 0.4, 3);
-          return false;
-        };
-
-        // @types/p5 fails to merge touchStarted/touchMoved/touchEnded onto the
-        // instance type here even though `touches` resolves fine from the same
-        // declaration file — narrow cast rather than widening the whole sketch.
-        const pTouch = p as unknown as {
-          touchStarted: () => boolean;
-          touchMoved: () => boolean;
-          touchEnded: () => boolean;
-        };
-
-        pTouch.touchStarted = () => {
-          if (p.touches.length === 1) {
-            dragging = true;
-          } else if (p.touches.length === 2) {
+        // p5 v2 dropped the separate touchStarted/touchMoved/touchEnded
+        // lifecycle — touch input is unified into Pointer Events, so it
+        // drives mousePressed/mouseDragged/mouseReleased instead (with
+        // event.pointerType === "touch"). Single-finger rotate already works
+        // through the plain mouse path below since Pointer Events cover it;
+        // only the 2-finger pinch needs its own branch, keyed off
+        // p.touches.length, which p5 keeps populated regardless of which
+        // lifecycle callback fires.
+        p.mousePressed = (event?: MouseEvent) => {
+          if ((event as PointerEvent | undefined)?.pointerType === "touch" && p.touches.length >= 2) {
             dragging = false;
             const [a, b] = p.touches as unknown as Array<{ x: number; y: number }>;
             pinchStartDist = p.dist(a.x, a.y, b.x, b.y);
             pinchStartZoom = zoom;
+            return;
           }
-          return false;
+          if (p.mouseX >= 0 && p.mouseX <= p.width && p.mouseY >= 0 && p.mouseY <= p.height) {
+            dragging = true;
+          }
         };
-        pTouch.touchMoved = () => {
-          if (p.touches.length === 1 && dragging) {
-            rotY += (p.mouseX - p.pmouseX) * 0.01;
-            rotX += (p.mouseY - p.pmouseY) * 0.01;
-          } else if (p.touches.length === 2) {
+        p.mouseDragged = (event?: MouseEvent) => {
+          if ((event as PointerEvent | undefined)?.pointerType === "touch" && p.touches.length >= 2) {
             const [a, b] = p.touches as unknown as Array<{ x: number; y: number }>;
             const d = p.dist(a.x, a.y, b.x, b.y);
             if (pinchStartDist > 0) {
               zoom = p.constrain(pinchStartZoom * (d / pinchStartDist), 0.4, 3);
             }
+            return;
           }
-          return false;
+          if (!dragging) return;
+          rotY += (p.mouseX - p.pmouseX) * 0.01;
+          rotX += (p.mouseY - p.pmouseY) * 0.01;
         };
-        pTouch.touchEnded = () => {
+        p.mouseReleased = (event?: MouseEvent) => {
+          if ((event as PointerEvent | undefined)?.pointerType === "touch") {
+            pinchStartDist = 0;
+            if (p.touches.length === 0) dragging = false;
+            return;
+          }
           dragging = false;
-          pinchStartDist = 0;
+        };
+        p.mouseWheel = (e: WheelEvent) => {
+          zoom = p.constrain(zoom - e.deltaY * 0.0008, 0.4, 3);
           return false;
         };
       };
